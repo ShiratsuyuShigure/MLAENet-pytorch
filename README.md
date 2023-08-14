@@ -7,9 +7,9 @@ The project will take some time to sort out......
 ## Data Setup
 1. Download MTC and MTC UAV Dataset from
 
-https://github.com/poppinace/mtc
+  https://github.com/poppinace/mtc
 
-https://github.com/poppinace/mtc-uav
+  https://github.com/poppinace/mtc-uav
 
 2. Put MTC Dataset in 'ROOT/data'. 
 3. You can find two python scripts in 
