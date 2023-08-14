@@ -6,10 +6,13 @@ The project will take some time to sort out......
 
 ## Data Setup
 1. Download MTC and MTC UAV Dataset from
+
 https://github.com/poppinace/mtc
+
 https://github.com/poppinace/mtc-uav
+
 2. Put MTC Dataset in 'ROOT/data'. 
-You can find two python scripts in 
+3. You can find two python scripts in 
 'data_preparation' folder which are used to generate ground truth density-map for 
 MTC and MTC-UAV respectively. (Mind that you need move the script to corresponding sub dataset folder like 'ROOT/data/MTC' and run it)  
 ## Train
