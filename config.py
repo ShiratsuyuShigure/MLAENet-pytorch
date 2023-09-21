@@ -9,7 +9,7 @@ class Config():
     def __init__(self):
         self.dataset_root = 'data/MTC'
         self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-        self.lr = 2e-6              # learning rate
+        self.lr = 4e-6              # learning rate
 
         if self.lr == 4e-6:
             self.x = 1024
