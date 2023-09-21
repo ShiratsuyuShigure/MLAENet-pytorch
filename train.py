@@ -66,7 +66,7 @@ if __name__=="__main__":
         min_mae = sys.maxsize
         min_mae_epoch = -1
 
-        # 创建训练集和验证集的数据加载器
+
         train_dataset = torch.utils.data.Subset(dataset, train_indices)
         val_dataset = torch.utils.data.Subset(dataset, val_indices)
         train_dataloader = DataLoader(train_dataset, batch_size=cfg.batch_size, shuffle=True,pin_memory=True, num_workers=4,
