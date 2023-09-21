@@ -37,10 +37,7 @@ class MLAENet(nn.Module):
 
     def forward(self, x):
         x = self.frontend(x)
-        #identity = self.conv1(x)
-        #identity = self.at0(identity)
         x = self.backend(x)
-        #x = x + identity
         x = self.c0(x)
         x = nn.functional.interpolate(x, scale_factor=2,mode="bilinear")
         x = self.c1(x)
