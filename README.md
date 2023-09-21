@@ -1,7 +1,6 @@
 # MLAENet-pytorch
 This is an implemention of MLAENet
 
-The project will take some time to sort out......
 
 
 ## Data Setup
