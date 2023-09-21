@@ -14,8 +14,7 @@ import sys
 from PIL import Image
 from tqdm import tqdm
 
-from dataset import create_test_dataloader
-from dataset0 import CrowdDataset
+from dataset import CrowdDataset
 from sd import seed_everything
 
 from config import Config
