@@ -14,7 +14,7 @@ import numpy as np
 from torchvision import transforms
 from PIL import Image
 from dataset import CrowdDataset
-from dataset import create_test_dataloader
+from dataset0 import create_test_dataloader
 from sd import seed_everything
 from scipy import signal
 from enum import Enum
@@ -163,8 +163,8 @@ def estimate_density_map(img_root,gt_dmap_root,model_param_path,index):
 if __name__=="__main__":
     seed_everything()
     torch.backends.cudnn.enabled=False
-    img_root='data/ShanghaiTech_Crowd_Counting_Dataset/MTC'
-    gt_dmap_root='data/ShanghaiTech_Crowd_Counting_Dataset/MTC-UAV'
+    img_root='data/MTC'
+    gt_dmap_root='data/MTC-UAV'
     model_param_path= 'checkpoints/MLAENet_MTC.pth'
 
     model=MLAENet()
