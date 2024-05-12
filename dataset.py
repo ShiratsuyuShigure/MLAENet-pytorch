@@ -1,17 +1,10 @@
-# %%
 import os
-
-import PIL.ImageShow
-import cv2
-import matplotlib.pyplot as plt
 import numpy as np
 import torch
-from torchvision import transforms
 import random
 from PIL import Image
+from torch.utils.data import Dataset, DataLoader
 from torchvision.transforms import Compose, ToTensor, Normalize
-import torchvision.transforms.functional as F
-
 from config import Config
 from sd import seed_everything
 
@@ -19,11 +12,17 @@ seed_everything()
 
 class CrowdDataset(torch.utils.data.Dataset):
 
-    '''
-    CrowdDataset
-    '''
 
-    def __init__(self, root, phase, main_transform=None, img_transform=None, dmap_transform=None):
+    def __init__(self, root, main_transform=None,use_flip=False):
+
+        main_trans_list=[]
+        if use_flip:
+            main_trans_list.append(RandomHorizontalFlip())
+
+        img_transform = Compose([ToTensor(), Normalize(mean=[0.5, 0.5, 0.5], std=[0.225, 0.225, 0.225])])
+        dmap_transform = ToTensor()
+
+
         '''
         root: the root path of dataset.
         phase: train or test.
@@ -31,8 +30,8 @@ class CrowdDataset(torch.utils.data.Dataset):
         img_transform: transforms on image.
         dmap_transform: transforms on densitymap.
         '''
-        self.img_path = os.path.join(root, phase + '_data/images')
-        self.dmap_path = os.path.join(root, phase + '_data/densitymaps')
+        self.img_path = os.path.join(root,'images')
+        self.dmap_path = os.path.join(root,'densitymaps')
 
         self.data_files = [filename for filename in os.listdir(self.img_path)
                            if os.path.isfile(os.path.join(self.img_path, filename))]
@@ -54,6 +53,7 @@ class CrowdDataset(torch.utils.data.Dataset):
         if self.dmap_transform is not None:
             dmap = self.dmap_transform(dmap)
 
+
         return {'image': img, 'densitymap': dmap}
 
     def read_image_and_dmap(self, fname):
@@ -64,10 +64,9 @@ class CrowdDataset(torch.utils.data.Dataset):
 
         dmap = np.load(os.path.join(
             self.dmap_path, os.path.splitext(fname)[0] + '.npy'))
-        # dmap = np.load(np.uint8(os.path.join(
-        # self.dmap_path, os.path.splitext(fname)[0] + '.npy')))
         dmap = dmap.astype(np.float32, copy=False)
         dmap = Image.fromarray(dmap)
+
 
         cfg= Config()
         goalx = cfg.x
@@ -77,48 +76,6 @@ class CrowdDataset(torch.utils.data.Dataset):
 
         return img, dmap
 
-
-def create_train_dataloader(root, use_flip, batch_size):
-    '''
-    Create train dataloader.
-    root: the dataset root.
-    use_flip: True or false.
-    batch size: the batch size.
-    '''
-    main_trans_list = []
-    if use_flip:
-        main_trans_list.append(RandomHorizontalFlip())
-    main_trans_list.append(PairedCrop())
-    main_trans = Compose(main_trans_list)
-    img_trans = Compose([ToTensor(), Normalize(mean=[0.5, 0.5, 0.5], std=[0.225, 0.225, 0.225])])
-    dmap_trans = ToTensor()
-    dataset = CrowdDataset(root=root, phase='train', main_transform=main_trans,
-                           img_transform=img_trans, dmap_transform=dmap_trans)
-    dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, pin_memory=True,
-                                             num_workers=2, prefetch_factor=2, persistent_workers=True)
-    return dataloader
-
-
-def create_test_dataloader(root):
-    '''
-    Create train dataloader.
-    root: the dataset root.
-    '''
-    main_trans_list = []
-    main_trans_list.append(PairedCrop())
-    main_trans = Compose(main_trans_list)
-    img_trans = Compose([ToTensor(), Normalize(mean=[0.5, 0.5, 0.5], std=[0.225, 0.225, 0.225])])
-    dmap_trans = ToTensor()
-    dataset = CrowdDataset(root=root, phase='test', main_transform=main_trans,
-                           img_transform=img_trans, dmap_transform=dmap_trans)
-    dataloader = torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=False, pin_memory=True, num_workers=4,
-                                             prefetch_factor=2, persistent_workers=True)
-    return dataloader
-
-
-# ----------------------------------#
-#          Transform code          #
-# ----------------------------------#
 class RandomHorizontalFlip(object):
     '''
     Random horizontal flip.
@@ -135,58 +92,3 @@ class RandomHorizontalFlip(object):
             return (img.transpose(Image.FLIP_LEFT_RIGHT), dmap.transpose(Image.FLIP_LEFT_RIGHT))
         else:
             return (img, dmap)
-
-
-
-class PairedCrop(object):
-    '''
-    Paired Crop for both image and its density map.
-    Note that due to the maxpooling in the nerual network, 
-    we must promise that the size of input image is the corresponding factor.
-    '''
-
-    def __init__(self, factor=16):
-        self.factor = factor
-
-    @staticmethod
-    def get_params(img, factor):
-        w, h = img.size
-        if w % factor == 0 and h % factor == 0:
-            return 0, 0, h, w
-        else:
-            return 0, 0, h - (h % factor), w - (w % factor)
-
-    def __call__(self, img_and_dmap):
-        '''
-        img: PIL.Image
-        dmap: PIL.Image
-        '''
-        img, dmap = img_and_dmap
-
-        i, j, th, tw = self.get_params(img, self.factor)
-
-        img = F.crop(img, i, j, th, tw)
-        dmap = F.crop(dmap, i, j, th, tw)
-        return (img, dmap)
-
-class RLight(object):
-
-
-    def __call__(self, img_and_dmap):
-        '''
-        img: PIL.Image
-        dmap: PIL.Image
-        '''
-        img = img_and_dmap
-
-        transform1 = transforms.ColorJitter(
-            brightness=0.5, contrast=1, saturation=0.1, hue=0.5)
-
-        if random.random() < 0.1:
-            img = transform1(img)
-
-        return img
-
-
-
-
